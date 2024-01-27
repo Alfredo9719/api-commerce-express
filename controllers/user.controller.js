@@ -72,7 +72,7 @@ const loginPost = async (req = request, res = response) => {
     };
 
     res.status(200).json({
-        message:"Intento de login",
+        message:"Login Succes",
         data: jwt.sign(payload, process.env.JWT_SIGNATURE)
     });
 }
