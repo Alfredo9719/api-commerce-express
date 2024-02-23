@@ -6,10 +6,18 @@ const salt = 10;
 
 
 const usersGet = async (req = request, res = response)=> {// se crea una constante con funcion flecha
-    const user = await Users.find();//para buscar los datos de la bd
+    // const user = await Users.find();//para buscar los datos de la bd
+    const tokenInfo = req.user; //Recupera info del token
+    const profileRaw = await Users.findById(tokenInfo); //y busca un usuario en especial firmado
+    const profile = {
+        name: profileRaw.name,
+        last_name: profileRaw.last_name,
+        email: profileRaw.email,
+        dob: profileRaw.dob
+    };
     res.status(200).json({
         message:"datos cargados correctamente",
-        data: user
+        data: profile //Regresa el usuario
     });
 }
 
@@ -29,8 +37,14 @@ const usersPut = async (req = request, res = response)=> {
     //tarea
     //realizar el put 
     //Crear modelo, rutas y controller de usuarios
-    const {id }= req.query;
+    const id = req.user.id;
     const body = req.body;
+
+    if (body.password != null && body.password != "") { //Si esta vacio el campo contraseña o es nulo
+        body.password = await bcrypt.hash(body.password, salt); //Encriptala para mandarla
+    } else {
+        delete body.password; //Elimina si es lo contrario
+    }
     const dataUpdate = await Users.findByIdAndUpdate(id, body, {new: true});
     res.status(200).json({
         message:"Datos actualizados correctamente",
@@ -68,7 +82,9 @@ const loginPost = async (req = request, res = response) => {
     }
 
     const payload = {
-        full_name: `${userInformationDb.name} ${userInformationDb.last_name}`
+        id: userInformationDb._id,
+        full_name: `${userInformationDb.name} ${userInformationDb.last_name}`,
+        email: userInformationDb.email
     };
 
     res.status(200).json({
